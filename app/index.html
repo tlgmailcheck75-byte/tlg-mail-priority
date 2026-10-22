@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TLG Mail Priority</title>
+  <meta name="description" content="TLG Mail Priority on the web — the same mail overview, priorities, reminders and alerts as the Android app.">
+  <meta name="theme-color" content="#1F4E8C">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://accounts.google.com/gsi/client" async></script>
+</head>
+<body>
+  <div id="app"><div class="loading">Loading…</div></div>
+  <noscript>This app needs JavaScript.</noscript>
+  <script type="module">
+    import { start } from './ui.js';
+    start();
+  </script>
+</body>
+</html>

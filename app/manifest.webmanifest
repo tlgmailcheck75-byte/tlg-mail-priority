@@ -1,0 +1,9 @@
+{
+  "name": "TLG Mail Priority",
+  "short_name": "TLG Mail",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1F4E8C",
+  "theme_color": "#1F4E8C",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

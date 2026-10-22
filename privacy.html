@@ -22,7 +22,7 @@
 <body>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">TLG Mail Priority (Android app) · Last updated 19 October 2026</p>
+  <p class="sub">TLG Mail Priority (Android app and website) · Last updated 22 October 2026</p>
 
   <div class="box">
     TLG Mail Priority's use and transfer of information received from Google APIs adheres to the
@@ -31,12 +31,13 @@
   </div>
 
   <h2>1. Who this applies to</h2>
-  <p>TLG Mail Priority is a private, non-commercial Android app for personal work use. It is not sold or advertised.</p>
+  <p>TLG Mail Priority is a private, non-commercial Android app and website (<a href="app/">tlgmailcheck75-byte.github.io/tlg-mail-priority/app</a>) for personal work use. It is not sold or advertised.</p>
 
   <h2>2. Google data the app accesses</h2>
   <p>With the user's permission, given on Google's own sign-in screen, the app requests one Google permission:</p>
   <ul>
     <li><code>https://www.googleapis.com/auth/gmail.readonly</code>: read-only access to Gmail messages.</li>
+    <li><code>https://www.googleapis.com/auth/drive.appdata</code>: access only to the app's own hidden folder in the user's Google Drive. The app cannot see any other Drive files.</li>
   </ul>
   <p>The app reads the sender, recipients, subject, date, message text, labels, thread information and attachment
      file names, types and sizes. It does not download attachment files. It cannot send, change or delete any email.</p>
@@ -47,13 +48,16 @@
     <li>To plan work on the user's weekly schedule and track whether it is done.</li>
     <li>To show notifications for important new emails.</li>
   </ul>
-  <p>All of this processing happens <strong>only on the user's phone</strong>. The data is not used for advertising,
+  <p>All of this processing happens <strong>only on the user's own device</strong> (the phone, or the browser on the user's computer). The data is not used for advertising,
      is not sold, and is not used to train any AI or machine-learning model.</p>
 
   <h2>4. Where the data is stored</h2>
-  <p>Downloaded email data, classifications, task statuses and notes are stored in the app's private storage on the phone.
-     They are excluded from Android cloud backup. The app has no server. Email data is never transmitted to the developer,
-     to any AI service or to any other third party.</p>
+  <p>Downloaded email data and classifications are stored in the app's private storage on the phone (excluded from Android cloud backup)
+     and, on the website, in the browser's local storage (IndexedDB) on the user's computer.</p>
+  <p>To keep the phone and the website in step, a small file with the user's own work state — task status (e.g. Done), notes, reminders,
+     manual category/priority choices, categories, rules and VIP addresses — is saved in the hidden app folder of the user's <strong>own</strong>
+     Google Drive. Email text is not stored there. Nobody else, including the developer, can read this folder.</p>
+  <p>There is no server. Email data is never transmitted to the developer, to any AI service or to any other third party.</p>
 
   <h2>5. Sharing</h2>
   <p>The app does not share Google user data with anyone. The only network connections it makes for email are to
@@ -61,8 +65,10 @@
 
   <h2>6. Deleting your data</h2>
   <ul>
-    <li>In the app, open <em>Settings → Disconnect</em>. This revokes the app's Gmail access at Google and deletes all
-        downloaded email data, statuses and notes from the phone.</li>
+    <li>In the app, open <em>Settings → Disconnect</em> (website: <em>Settings → Sign out &amp; remove data</em>). This revokes access at Google and deletes
+        downloaded email data from that device.</li>
+    <li>The synced work-state file can be deleted at any time in Google Drive → Settings → Manage apps → TLG Mail Priority →
+        Options → <em>Delete hidden app data</em>.</li>
     <li>Uninstalling the app deletes all of its data.</li>
     <li>You can also remove access at any time at
         <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
