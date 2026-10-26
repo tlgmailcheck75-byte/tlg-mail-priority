@@ -82,6 +82,7 @@ export function parseMessage(j, selfEmail) {
     historyId: +(j.historyId || 0),
     fromName, fromEmail,
     toLine: (h.to || '').slice(0, 500),
+    ccLine: (h.cc || '').slice(0, 500),
     subject: (h.subject || '').trim() ? h.subject : '(no subject)',
     snippet: htmlEntities(j.snippet || ''),
     body,
@@ -99,5 +100,5 @@ export const attachmentNames = (m) => (m.attachments || '').split('\n').filter((
 export const toInput = (m) => ({
   subject: m.subject, body: m.body, fromName: m.fromName, fromEmail: m.fromEmail,
   attachments: attachmentNames(m), labels: (m.labelIds || '').split(',').filter(Boolean),
-  hasUnsubscribe: m.hasUnsubscribe, receivedAt: m.receivedAt, isFromMe: m.isFromMe, to: m.toLine,
+  hasUnsubscribe: m.hasUnsubscribe, receivedAt: m.receivedAt, isFromMe: m.isFromMe, to: m.toLine, cc: m.ccLine || '',
 });

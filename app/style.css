@@ -197,3 +197,36 @@ label.radio, label.check { display: flex; align-items: center; gap: 8px; font-si
 @keyframes ring { from { transform: scale(1); opacity: .45; } to { transform: scale(1.35); opacity: 0; } }
 @keyframes up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .logo, .ring, .l1, .l2, .l3, .l4 { animation: none; opacity: 1; } .ring { display: none; } }
+
+/* ---------- six-folder dashboard */
+.search-btn { display: block; width: calc(100% - 24px); margin: 8px 12px 6px; padding: 10px 14px; border-radius: 24px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: inherit; text-align: left; cursor: pointer; }
+.tiles.four { grid-template-columns: repeat(4, 1fr); }
+.tile.red { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--err); }
+.folder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 12px; }
+@media (min-width: 1300px) { .split:not(.has-detail) .folder-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.card.folder-card { margin: 0; padding: 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.card.folder-card:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--line)); }
+.prio-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+.prio-chip { border: 0; border-radius: 8px; padding: 5px 0; font-weight: 700; cursor: pointer; opacity: .55; }
+.prio-chip.has { opacity: 1; }
+.prio-chip.p-HIGH { background: color-mix(in srgb, var(--high) 16%, transparent); color: var(--high); }
+.prio-chip.p-MEDIUM { background: color-mix(in srgb, var(--medium) 16%, transparent); color: var(--medium); }
+.prio-chip.p-LOW { background: color-mix(in srgb, var(--low) 16%, transparent); color: var(--low); }
+.folder-head { padding: 8px 16px 0; }
+.folder-head h2 { margin: 0; font-size: 20px; }
+.folder-line { margin-top: 6px; font-size: 14px; }
+.review-banner { margin: 6px 12px; background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
+.review-card { background: color-mix(in srgb, var(--medium) 13%, var(--surface)); }
+.review-list { margin: 6px 0 4px 18px; padding: 0; font-size: 14px; }
+.review-list li { margin: 2px 0; }
+.reasons { margin: 2px 0 0 18px; padding: 0; font-size: 13px; }
+.kv.static { cursor: default; }
+.pin-gate { max-width: 360px; margin: 40px auto; text-align: center; padding: 0 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pin-gate .big { font-size: 44px; }
+.pin-gate h3 { margin: 0; }
+.field.pin { max-width: 200px; text-align: center; letter-spacing: 6px; font-size: 20px; }
+.nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 12px 12px 4px; }
+.nav-item .count { font-size: 11px; background: var(--surface2); border-radius: 10px; padding: 0 7px; color: var(--muted); }
+.audit-row { display: flex; gap: 10px; align-items: center; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+.audit-row.clickable { cursor: pointer; }
+.save-btn { margin: 8px 12px 24px; }

@@ -1,0 +1,399 @@
+{
+  "_about": "One test case per business rule in the folder/priority spec. Run by BOTH the Android unit tests (FolderRulesTest.kt) and the website tests (engine.test.mjs), so the phone and the laptop classify identically. Messages are listed oldest first; the last one is the newest.",
+  "vips": [
+    { "name": "Mike", "emails": "mike@tlg-test.com" },
+    { "name": "April", "emails": "april@tlg-test.com" }
+  ],
+  "me": "tlgmailcheck75@gmail.com",
+  "cases": [
+    {
+      "name": "RS: Mike replies to Olivia's payment reminder -> High",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "ap@abcdental.com", "cc": "billing@teamleadgeneration.com", "subject": "Payment reminder - Invoice 4512", "body": "Hi, this is a friendly payment reminder that invoice 4512 for $820.00 is past due. Kindly make the payment at the earliest." },
+        { "from": "ABC Dental <ap@abcdental.com>", "to": "tlgbilling29@gmail.com", "subject": "Re: Payment reminder - Invoice 4512", "body": "We will pay next week, our payment will be late this time." },
+        { "from": "Mike <mike@tlg-test.com>", "to": "ap@abcdental.com", "cc": "tlgbilling29@gmail.com", "subject": "Re: Payment reminder - Invoice 4512", "body": "Hi, we need this cleared this week please. Olivia, keep me posted." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "HIGH" }
+    },
+    {
+      "name": "RS: customer reply about an invoice payment issue / appointment credits -> Medium",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "office@smileclinic.com", "cc": "billing@teamleadgeneration.com", "subject": "Payment reminder - Invoice 3301", "body": "Friendly reminder: invoice 3301 is overdue. Please remit payment." },
+        { "from": "Smile Clinic <office@smileclinic.com>", "to": "tlgbilling29@gmail.com", "subject": "Re: Payment reminder - Invoice 3301", "body": "There is an issue with invoice 3301 - two appointments should have been credited. Please check before we pay." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "MEDIUM" }
+    },
+    {
+      "name": "RS: customer says the payment will be late -> Low",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "ap@abcdental.com", "cc": "billing@teamleadgeneration.com", "subject": "Payment reminder - Invoice 4512", "body": "This is a friendly payment reminder that invoice 4512 is past due." },
+        { "from": "ABC Dental <ap@abcdental.com>", "to": "tlgbilling29@gmail.com", "subject": "Re: Payment reminder - Invoice 4512", "body": "Sorry, our payment will be late. We will pay next week." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "LOW" }
+    },
+    {
+      "name": "RS: customer requests a change in appointment rate -> Medium",
+      "messages": [
+        { "from": "Dr. Patel <drpatel@patelortho.com>", "to": "billing@teamleadgeneration.com", "subject": "Appointment rate", "body": "Hello, can we change the appointment rate to $40 per appointment from next month?" }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "MEDIUM" }
+    },
+    {
+      "name": "RS: customer already paid but got a reminder -> Low",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "ap@brightsmiles.com", "cc": "billing@teamleadgeneration.com", "subject": "Payment reminder - Invoice 2210", "body": "Kindly note invoice 2210 is outstanding. Please make the payment." },
+        { "from": "Bright Smiles <ap@brightsmiles.com>", "to": "tlgbilling29@gmail.com", "subject": "Re: Payment reminder - Invoice 2210", "body": "We already paid this invoice on Oct 10. Remittance attached." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "LOW" }
+    },
+    {
+      "name": "RS: Olivia's reminder with no reply yet -> Low",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "ap@abcdental.com", "cc": "billing@teamleadgeneration.com", "subject": "Payment reminder - Invoice 4600", "body": "Friendly payment reminder: invoice 4600 for $300 is due." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "LOW" }
+    },
+    {
+      "name": "RS: Sayyad advises how much a customer should be charged -> Medium",
+      "messages": [
+        { "from": "Sayyad Ahmed <sayyad@tlgsales.com>", "to": "billing@teamleadgeneration.com", "subject": "ABC Dental billing", "body": "For ABC Dental, they should be charged $350 for this month as agreed on the call." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "MEDIUM" }
+    },
+    {
+      "name": "RS: Bill.com OTP for Olivia -> High + urgent",
+      "messages": [
+        { "from": "Bill.com <no-reply@hq.bill.com>", "to": "tlgbilling29@gmail.com", "subject": "Your Bill.com verification code", "body": "Your verification code is 482913. It expires in 10 minutes." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "HIGH", "critical": true, "otp": "482913" }
+    },
+    {
+      "name": "RS: Olivia requests the AR Aging report -> High",
+      "messages": [
+        { "from": "Olivia <tlgbilling29@gmail.com>", "to": "billing@teamleadgeneration.com", "subject": "AR Aging", "body": "Hi team, please share the latest AR aging report so I can plan this week's reminders." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "HIGH" }
+    },
+    {
+      "name": "RS: wage payment for QA / QMCA / Myrthle -> High",
+      "messages": [
+        { "from": "Finance Desk <finance@tlgops.com>", "to": "billing@teamleadgeneration.com", "subject": "Wage payment this week", "body": "Please confirm the wage payment for QMCA and Myrthle is scheduled for Friday." }
+      ],
+      "expect": { "folder": "reminder_summary", "priority": "HIGH" }
+    },
+
+    {
+      "name": "CI: Syed sends a credit email with lead name and reason -> Medium",
+      "messages": [
+        { "from": "Syed Ali <syed@tlgsales.com>", "to": "billing@teamleadgeneration.com", "subject": "Credit request - Smile Clinic", "body": "Please issue a credit. Lead name: John Doe. Reason: duplicate lead sent twice." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM", "detail": "John Doe" }
+    },
+    {
+      "name": "CI: customer directly requests credit for an appointment -> Medium",
+      "messages": [
+        { "from": "Front Desk <frontdesk@happyteeth.com>", "to": "billing@teamleadgeneration.com", "subject": "Credit for appointment", "body": "Please credit the appointment on 10/12, the patient never showed up." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CI: credit pending for a billed appointment -> Medium",
+      "messages": [
+        { "from": "Front Desk <frontdesk@happyteeth.com>", "to": "billing@teamleadgeneration.com", "subject": "Pending credit", "body": "The credit is still pending for the billed appointment of Oct 5. Can you check?" }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CI: Mike asks to write off an invoice as bad debt -> High",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "billing@teamleadgeneration.com", "subject": "Invoice 5521", "body": "Please write off invoice 5521 as bad debt, the clinic has closed." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+    {
+      "name": "CI: customer asks to change the invoice email address -> High",
+      "messages": [
+        { "from": "ABC Dental <ap@abcdental.com>", "to": "billing@teamleadgeneration.com", "subject": "Invoice email change", "body": "Please change our invoice email address to accounts@abcdental.com going forward." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+    {
+      "name": "CI: customer requests an account summary -> Low",
+      "messages": [
+        { "from": "ABC Dental <ap@abcdental.com>", "to": "billing@teamleadgeneration.com", "subject": "Account summary", "body": "Hi, can you send us an account summary for this year?" }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "LOW" }
+    },
+    {
+      "name": "CI: Syed sends a new customer agreement with rates / slabs -> Medium",
+      "messages": [
+        { "from": "Syed Ali <syed@tlgsales.com>", "to": "billing@teamleadgeneration.com", "subject": "New customer agreement - XYZ Clinic", "body": "New customer agreement for XYZ Clinic. Rates: $45 per appointment, slab 1-50 appointments, flat rate $1,500 above that." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CI: customer payment failed / bounced -> Medium",
+      "messages": [
+        { "from": "Bright Smiles <ap@brightsmiles.com>", "to": "billing@teamleadgeneration.com", "subject": "Payment", "body": "Our bank says the payment bounced due to insufficient funds. We will retry." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CI: invoice dispute for a duplicate amount -> Medium",
+      "messages": [
+        { "from": "Smile Clinic <office@smileclinic.com>", "to": "billing@teamleadgeneration.com", "subject": "Invoice 7781", "body": "Invoice 7781 has a duplicate amount - we were charged twice for the same appointments." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CI: Syed sends a rate / slab change -> High",
+      "messages": [
+        { "from": "Syed Ali <syed@tlgsales.com>", "to": "billing@teamleadgeneration.com", "subject": "Rate change - ABC Dental", "body": "Rate change for ABC Dental: the new rate is $50 per appointment from Nov 1." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+    {
+      "name": "CI: Mike sends a slab change -> High",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "billing@teamleadgeneration.com", "subject": "Smile Clinic slab", "body": "Update the slab for Smile Clinic to 1-30 appointments at $55." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+    {
+      "name": "CI: SaasAnt / QuickBooks import error -> High",
+      "messages": [
+        { "from": "SaasAnt <support@saasant.com>", "to": "billing@teamleadgeneration.com", "subject": "Import failed", "body": "Your import failed: 3 invoices could not be synced to QuickBooks Online." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+    {
+      "name": "CI: urgent invoice correction escalates to High",
+      "messages": [
+        { "from": "Happy Teeth <ap@happyteeth.com>", "to": "billing@teamleadgeneration.com", "subject": "URGENT: wrong amount on invoice 8890", "body": "Invoice 8890 shows the wrong amount. Please correct it urgently, our audit is tomorrow." }
+      ],
+      "expect": { "folder": "customer_invoicing", "priority": "HIGH" }
+    },
+
+    {
+      "name": "CCB: Janilin sends the weekly completed appointments -> High",
+      "messages": [
+        { "from": "Janilin Cruz <janilin@tlgcallcenter.com>", "to": "billing@teamleadgeneration.com", "subject": "Completed appointments - week 43", "body": "Hi, attached is the list of completed appointments for this week.", "atts": ["completed_appointments_w43.xlsx"] }
+      ],
+      "expect": { "folder": "call_center_bonus", "priority": "HIGH" }
+    },
+    {
+      "name": "CCB: incorrect bonus / missing appointment -> High",
+      "messages": [
+        { "from": "Agent Maria <maria@tlgcallcenter.com>", "to": "billing@teamleadgeneration.com", "subject": "Bonus incorrect", "body": "My call center bonus amount is incorrect - 2 appointments are missing from the list." }
+      ],
+      "expect": { "folder": "call_center_bonus", "priority": "HIGH" }
+    },
+    {
+      "name": "CCB: request for a missed / excluded bonus -> Medium",
+      "messages": [
+        { "from": "Agent Leo <leo@tlgcallcenter.com>", "to": "billing@teamleadgeneration.com", "subject": "Missed bonus", "body": "Please add the bonus that was missed last week, it was excluded from the payout." }
+      ],
+      "expect": { "folder": "call_center_bonus", "priority": "MEDIUM" }
+    },
+    {
+      "name": "CCB: routine call center bonus query -> Medium",
+      "messages": [
+        { "from": "Agent Leo <leo@tlgcallcenter.com>", "to": "billing@teamleadgeneration.com", "subject": "Bonus date", "body": "When will the call center bonus be paid this week?" }
+      ],
+      "expect": { "folder": "call_center_bonus", "priority": "MEDIUM" }
+    },
+
+    {
+      "name": "MA: Mike mentions Dev -> High (Rule A)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "billing@teamleadgeneration.com", "subject": "Quick note", "body": "Dev, have a look at this when you can." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: April mentions Geo -> High (Rule A)",
+      "messages": [
+        { "from": "April <april@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Call", "body": "Geo will join the call tomorrow." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: Mike mentions Vikram by full name -> High (Rule A)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Update", "body": "Vikram Sharma mentioned the client meeting went well." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: Mike writes to dev.teamleadgen@gmail.com -> High (Rule B)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "dev.teamleadgen@gmail.com", "subject": "FYI", "body": "Just sharing this for your records." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: Mike writes to Billing@teamleadgeneration.com -> High (Rule B)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "Billing <Billing@teamleadgeneration.com>", "subject": "FYI", "body": "Sharing the client list for reference." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: Mike writes to devendramandhana@gmail.com -> High (Rule B)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "devendramandhana@gmail.com", "subject": "Hello", "body": "Good morning!" }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: Rule B uses the To field, not the quoted text",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Re: hello", "body": "Thanks, noted.\n\nOn Mon, someone <dev.teamleadgen@gmail.com> wrote:\n> please forward to dev.teamleadgen@gmail.com" }
+      ],
+      "expect": { "folder": "mike_april", "priority": "LOW" }
+    },
+    {
+      "name": "MA: Mike gives a direct instruction with a deadline -> High (Rule 3)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Report", "body": "Please send me the reconciliation report by Friday." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH" }
+    },
+    {
+      "name": "MA: April asks for routine non-urgent work -> Medium",
+      "messages": [
+        { "from": "April <april@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Sheet", "body": "Could you update the shared tracker when you get a chance?" }
+      ],
+      "expect": { "folder": "mike_april", "priority": "MEDIUM" }
+    },
+    {
+      "name": "MA: general message from Mike -> Low (Rule 4)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Weekend", "body": "Thanks everyone, have a great weekend." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "LOW" }
+    },
+    {
+      "name": "MA: no accidental name match (developer / geography)",
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Article", "body": "Interesting article on developer tools and geography trivia." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "LOW" }
+    },
+    {
+      "name": "Universal: someone other than Mike writing to Billing@ is NOT forced High",
+      "messages": [
+        { "from": "SaaS Weekly <news@saasweekly.com>", "to": "Billing@teamleadgeneration.com", "subject": "Our autumn webinar series", "body": "Join our webinar on productivity tips. Click to register.", "unsub": true, "labels": ["CATEGORY_PROMOTIONS"] }
+      ],
+      "expect": { "folder": "other", "priority": "LOW" }
+    },
+    {
+      "name": "Universal: a vendor mentioning Vikram is NOT forced High",
+      "messages": [
+        { "from": "Office Supplies Co <news@officesupplies.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Thanks for your order", "body": "Vikram, thanks for shopping with us. Your order has shipped.", "unsub": true }
+      ],
+      "expect": { "folder": "other", "priority": "LOW" }
+    },
+    {
+      "name": "Universal: your saved rule cannot downgrade a mandatory High",
+      "rules": [ { "field": "FROM", "pattern": "mike@tlg-test.com", "categoryKey": null, "priority": "LOW" } ],
+      "messages": [
+        { "from": "Mike <mike@tlg-test.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Note", "body": "Dev will handle the call." }
+      ],
+      "expect": { "folder": "mike_april", "priority": "HIGH", "reason": "mandatory" }
+    },
+
+    {
+      "name": "PP: Edna Gail sends weekly work hours -> Medium",
+      "messages": [
+        { "from": "Edna Gail <edna.gail@tlgstaff.com>", "to": "billing@teamleadgeneration.com", "subject": "Weekly hours", "body": "Hi, my work hours this week: 40 hours. Pay period Oct 13 - Oct 19." }
+      ],
+      "expect": { "folder": "payroll", "priority": "MEDIUM", "detail": "40" }
+    },
+    {
+      "name": "PP: Arslan Shabbir sends closure staff hours with two PDFs -> Medium",
+      "messages": [
+        { "from": "Arslan Shabbir <arslan@tlgstaff.com>", "to": "billing@teamleadgeneration.com", "subject": "Closure staff hours", "body": "Please find the closure staff hours attached.", "atts": ["closure_hours_part1.pdf", "closure_hours_part2.pdf"] }
+      ],
+      "expect": { "folder": "payroll", "priority": "MEDIUM" }
+    },
+    {
+      "name": "PP: QA / QMCA team sends the amount payable to them -> Medium",
+      "messages": [
+        { "from": "QA Team <qa@tlgquality.com>", "to": "billing@teamleadgeneration.com", "subject": "Amount payable - October", "body": "The amount payable to the QA team for October is $1,200." }
+      ],
+      "expect": { "folder": "payroll", "priority": "MEDIUM" }
+    },
+    {
+      "name": "PP: team member asks about a bonus deduction -> Medium",
+      "messages": [
+        { "from": "Rahul (TM) <rahul@tlgstaff.com>", "to": "billing@teamleadgeneration.com", "subject": "Bonus deduction", "body": "Why was there a deduction from my bonus amount this month?" }
+      ],
+      "expect": { "folder": "payroll", "priority": "MEDIUM" }
+    },
+    {
+      "name": "PP: fixed-salary employee (Gemma) asks about salary -> High",
+      "messages": [
+        { "from": "Gemma Reyes <gemma@tlgstaff.com>", "to": "billing@teamleadgeneration.com", "subject": "Salary question", "body": "Hi, I have a question about my salary for October." }
+      ],
+      "expect": { "folder": "payroll", "priority": "HIGH" }
+    },
+    {
+      "name": "PP: any employee asks about a delayed salary -> High",
+      "messages": [
+        { "from": "Jose Santos <jose@tlgstaff.com>", "to": "billing@teamleadgeneration.com", "subject": "Salary", "body": "My salary has not been received yet. It is delayed by a week." }
+      ],
+      "expect": { "folder": "payroll", "priority": "HIGH" }
+    },
+    {
+      "name": "PP: April asking about her own salary goes to Payroll -> High",
+      "messages": [
+        { "from": "April <april@tlg-test.com>", "to": "billing@teamleadgeneration.com", "subject": "Salary", "body": "My salary was not credited this month, can you check?" }
+      ],
+      "expect": { "folder": "payroll", "priority": "HIGH" }
+    },
+
+    {
+      "name": "Other: urgent vendor payment issue -> High",
+      "messages": [
+        { "from": "Cloud Host Inc <billing@cloudhost.com>", "to": "billing@teamleadgeneration.com", "subject": "URGENT: payment overdue", "body": "Your payment is overdue. Please pay immediately or the account will be suspended tomorrow." }
+      ],
+      "expect": { "folder": "other", "priority": "HIGH" }
+    },
+    {
+      "name": "Other: tax filing deadline needing approval -> High",
+      "messages": [
+        { "from": "Tax Advisor <cpa@taxfirm.com>", "to": "billing@teamleadgeneration.com", "subject": "Sales tax filing", "body": "The sales tax filing is due by tomorrow. Please approve the return." }
+      ],
+      "expect": { "folder": "other", "priority": "HIGH" }
+    },
+    {
+      "name": "Other: routine request for supporting documents -> Medium",
+      "messages": [
+        { "from": "Vendor Onboarding <setup@supplierco.com>", "to": "billing@teamleadgeneration.com", "subject": "Vendor setup", "body": "Could you share the W-9 and supporting documents for the vendor setup?" }
+      ],
+      "expect": { "folder": "other", "priority": "MEDIUM" }
+    },
+    {
+      "name": "Other: newsletter / informational -> Low",
+      "messages": [
+        { "from": "Accounting Today <news@accountingtoday.com>", "to": "tlgmailcheck75@gmail.com", "subject": "This week in accounting", "body": "Top stories this week. Read more on our site.", "unsub": true, "labels": ["CATEGORY_PROMOTIONS"] }
+      ],
+      "expect": { "folder": "other", "priority": "LOW" }
+    },
+    {
+      "name": "Other: routine acknowledgment -> Low",
+      "messages": [
+        { "from": "Vendor Co <ar@vendorco.com>", "to": "billing@teamleadgeneration.com", "subject": "Re: statement", "body": "Thanks, received." }
+      ],
+      "expect": { "folder": "other", "priority": "LOW" }
+    },
+    {
+      "name": "Other: a non-Bill.com OTP is still High",
+      "messages": [
+        { "from": "QuickBooks <noreply@intuit.com>", "to": "tlgmailcheck75@gmail.com", "subject": "Your sign-in code", "body": "Your verification code is 731942" }
+      ],
+      "expect": { "folder": "other", "priority": "HIGH", "otp": "731942" }
+    }
+  ]
+}

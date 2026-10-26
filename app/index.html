@@ -8,12 +8,6 @@
   <meta name="theme-color" content="#1F4E8C">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <!-- iPhone/iPad: home-screen icon + standalone app mode -->
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="TLG Mail">
   <link rel="stylesheet" href="style.css">
   <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
@@ -23,12 +17,6 @@
   <script type="module">
     import { start } from './ui.js';
     start();
-  </script>
-  <script>
-    // Offline shell + fast loads for the installed (Add to Home Screen) app.
-    if ('serviceWorker' in navigator) {
-      addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-    }
   </script>
 </body>
 </html>

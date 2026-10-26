@@ -1,22 +1,35 @@
-// Sample mail for demo mode (open the site with ?demo). Nothing is fetched from Gmail and nothing is saved.
+// Sample mail for demo mode (open the site with ?demo). Nothing is fetched from Gmail and nothing is saved
+// to your account. The scenarios follow the folder rules (Reminder Summary, Customer Invoicing, …).
 const H = 3600_000;
 export function demoMessages(now = Date.now()) {
   const m = (id, thread, ago, fromName, fromEmail, subject, body, extra = {}) => ({
-    id, threadId: thread, historyId: 1, fromName, fromEmail, toLine: extra.to || 'tlgmailcheck75@gmail.com',
+    id, threadId: thread, historyId: 1, fromName, fromEmail, toLine: extra.to || 'billing@teamleadgeneration.com', ccLine: extra.cc || '',
     subject, snippet: body.slice(0, 120), body, receivedAt: now - ago, labelIds: (extra.labels || ['INBOX']).join(','),
     attachments: (extra.atts || []).map((a) => `${a}|application/pdf|20480`).join('\n'), hasUnsubscribe: !!extra.unsub, isFromMe: !!extra.me,
   });
   return [
-    m('d1', 't1', 0.2 * H, 'Bill.com', 'no-reply@hq.bill.com', 'Your Bill.com verification code', 'Your verification code is 482913. It expires in 10 minutes.', { to: 'tlgmailcheck75@gmail.com' }),
-    m('d2', 't2', 1 * H, 'Mike', 'mike@demo-client.com', 'AR summary for this week', 'Hi team,\n\nCan you send me the AR summary for this week? Please include the open invoices over 60 days and the expected collection dates. I need it for the call with the client tomorrow morning.\n\nThanks,\nMike'),
-    m('d3a', 't3', 30 * H, 'Rachel (Acme Corp)', 'ap@acme-demo.com', 'Invoice INV-2231 disputed', 'Hello,\n\nWe disagree with invoice INV-2231. We were overcharged for 12 hours and billed twice for the week of 6 October. Please issue a credit memo.\n\nRegards,\nRachel'),
-    m('d3b', 't3', 26 * H, 'You', 'tlgmailcheck75@gmail.com', 'Re: Invoice INV-2231 disputed', 'Hi Rachel, thanks — checking the timesheets now and will revert today.\n\nOn Tue, Rachel wrote:\n> We disagree with invoice INV-2231.', { me: true, labels: ['SENT'] }),
-    m('d3c', 't3', 3 * H, 'Rachel (Acme Corp)', 'ap@acme-demo.com', 'Re: Invoice INV-2231 disputed', 'Any update? This is now urgent, our finance team is escalating. Please send the corrected invoice by EOD.\n\nOn Wed, TLG wrote:\n> checking the timesheets now'),
-    m('d4', 't4', 5 * H, 'Priya (HR)', 'hr@demo-client.com', 'Payroll inputs for week 42', 'Attached is the payroll register for approval. Devendra asked to close this before the payroll cutoff on Thursday.', { atts: ['payroll_register_w42.pdf'], to: 'Billing <billing@teamleadgeneration.com>' }),
-    m('d5', 't5', 8 * H, 'Chase Bank', 'statements@chase-demo.com', 'September bank statement available', 'The bank reconciliation for September shows a difference of $1,250.00 versus the bank statement. Please review.'),
-    m('d6', 't6', 20 * H, 'April', 'april@demo-client.com', 'Call center bonus — October', 'Hi, please calculate the call center bonus for October using the attached KPI sheet and send it for my approval. Make sure the new joiners are pro-rated.', { atts: ['kpi_october.xlsx'] }),
-    m('d7', 't7', 40 * H, 'Vendor Co', 'ar@vendor-demo.com', 'Vendor statement for reconciliation', 'Please find our statement of account. Kindly confirm the balance and share the vendor reconciliation.'),
-    m('d8', 't8', 50 * H, 'SaaS Weekly', 'news@saas-demo.com', 'Our autumn webinar series', 'Join our webinar on productivity tips. Click to register.', { unsub: true, labels: ['INBOX', 'CATEGORY_PROMOTIONS'] }),
+    // Reminder Summary
+    m('d1', 't1', 0.2 * H, 'Bill.com', 'no-reply@hq.bill.com', 'Your Bill.com verification code', 'Your verification code is 482913. It expires in 10 minutes.', { to: 'tlgbilling29@gmail.com' }),
+    m('d2a', 't2', 30 * H, 'Olivia', 'tlgbilling29@gmail.com', 'Payment reminder - Invoice 4512', 'Hi, this is a friendly payment reminder that invoice 4512 for $820.00 is past due.', { to: 'ap@abcdental-demo.com', cc: 'billing@teamleadgeneration.com' }),
+    m('d2b', 't2', 20 * H, 'ABC Dental', 'ap@abcdental-demo.com', 'Re: Payment reminder - Invoice 4512', 'Sorry, our payment will be late. We will pay next week.', { to: 'tlgbilling29@gmail.com' }),
+    m('d2c', 't2', 2 * H, 'Mike', 'mike@demo-client.com', 'Re: Payment reminder - Invoice 4512', 'We need this cleared this week please. Olivia, keep me posted.', { to: 'ap@abcdental-demo.com', cc: 'tlgbilling29@gmail.com' }),
+    m('d3', 't3', 26 * H, 'Bright Smiles', 'ap@brightsmiles-demo.com', 'Re: Payment reminder - Invoice 2210', 'We already paid this invoice on Oct 10. Remittance attached.'),
+    // Customer Invoicing
+    m('d4', 't4', 4 * H, 'Syed Ali', 'syed@demo-sales.com', 'Rate change - ABC Dental', 'Rate change for ABC Dental: the new rate is $50 per appointment from Nov 1.'),
+    m('d5', 't5', 9 * H, 'SaasAnt', 'support@saasant.com', 'Import failed', 'Your import failed: 3 invoices could not be synced to QuickBooks Online.'),
+    m('d6', 't6', 28 * H, 'Smile Clinic', 'office@smileclinic-demo.com', 'Invoice 7781', 'Invoice 7781 has a duplicate amount - we were charged twice for the same appointments.'),
+    // Call Center Bonus
+    m('d7', 't7', 6 * H, 'Janilin Cruz', 'janilin@demo-callcenter.com', 'Completed appointments - week 43', 'Hi, attached is the list of completed appointments for this week.', { atts: ['completed_appointments_w43.pdf'] }),
+    m('d8', 't8', 40 * H, 'Agent Leo', 'leo@demo-callcenter.com', 'Bonus date', 'When will the call center bonus be paid this week?'),
+    // Mike and April Mail
+    m('d9', 't9', 1 * H, 'Mike', 'mike@demo-client.com', 'Quick note', 'Dev, please have a look at the ABC Dental account today.'),
+    m('d10', 't10', 12 * H, 'April', 'april@demo-client.com', 'Tracker', 'Could you update the shared tracker when you get a chance?', { to: 'tlgmailcheck75@gmail.com' }),
+    // Payroll Process
+    m('d11', 't11', 3 * H, 'Jose Santos', 'jose@demo-staff.com', 'Salary', 'My salary has not been received yet. It is delayed by a week.'),
+    m('d12', 't12', 22 * H, 'Edna Gail', 'edna.gail@demo-staff.com', 'Weekly hours', 'Hi, my work hours this week: 40 hours. Pay period Oct 13 - Oct 19.'),
+    // Other Mails
+    m('d13', 't13', 8 * H, 'Vendor Onboarding', 'setup@supplier-demo.com', 'Vendor setup', 'Could you share the W-9 and supporting documents for the vendor setup?'),
+    m('d14', 't14', 50 * H, 'Accounting Today', 'news@accountingtoday-demo.com', 'This week in accounting', 'Top stories this week. Read more on our site.', { unsub: true, labels: ['INBOX', 'CATEGORY_PROMOTIONS'] }),
   ];
 }
-export const DEMO_VIPS = [{ id: 1, name: 'Mike', emails: 'mike@demo-client.com', alwaysHigh: true }, { id: 2, name: 'April', emails: 'april@demo-client.com', alwaysHigh: true }];
+export const DEMO_VIPS = [{ id: 1, name: 'Mike', emails: 'mike@demo-client.com', alwaysHigh: false }, { id: 2, name: 'April', emails: 'april@demo-client.com', alwaysHigh: false }];
