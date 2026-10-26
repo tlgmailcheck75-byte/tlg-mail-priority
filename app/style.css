@@ -230,3 +230,7 @@ label.radio, label.check { display: flex; align-items: center; gap: 8px; font-si
 .audit-row { display: flex; gap: 10px; align-items: center; padding: 8px 16px; border-bottom: 1px solid var(--line); }
 .audit-row.clickable { cursor: pointer; }
 .save-btn { margin: 8px 12px 24px; }
+
+.sync-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 4px 0; }
+.sync-table th, .sync-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.sync-table tr.sub th { font-weight: 400; color: var(--muted); font-size: 11px; }

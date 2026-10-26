@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS = {
   notifyHigh: true, notifyVip: true, notifyMedium: false, notifyOtpBeep: true,
   highNames: DEFAULT_HIGH_NAMES, highRecipients: DEFAULT_HIGH_RECIPIENTS, configUpdatedAt: 0,
   people: null, folderModel: 0, sendEmptySummaries: false, payrollPinHash: '', lastReview: {},
+  coverageFromDay: 0, sharedFromDay: 0, backfilledFromDay: 0, peerStats: null,
 };
 
 export const state = {
@@ -174,7 +175,10 @@ async function reclassifyThread(threadId, eng, newMessage = false) {
 
   const newer = !!old && old.latestMessageId !== latest.id;
   let status;
+  // Mail you never touched takes its status from the rules, so phone and website agree.
+  const untouched = !!old && !old.userUpdatedAt;
   if (!old) status = c.status;
+  else if (untouched) status = c.status === 'NEW' && old.status === 'TO_DO' ? 'TO_DO' : c.status;
   else if (newer && latest.isFromMe && (old.status === 'NEW' || old.status === 'TO_DO')) status = 'WAITING';
   else if (newer && !latest.isFromMe && !E.isPending(old.status) && c.status === 'NEW') status = 'NEW';
   else if (newer && !latest.isFromMe && old.status === 'WAITING') status = 'NEW';
@@ -197,7 +201,8 @@ async function reclassifyThread(threadId, eng, newMessage = false) {
     vipName: c.vipName, suggestedAction: c.suggestedAction,
     processEpochDay: old?.manualProcessDay ? old.processEpochDay : c.processEpochDay,
     status, summary: c.summary, deadline: c.deadline?.text ?? null, otpCode: c.otpCode, reasons: reasons.join('\n'),
-    needsReview: c.needsReview || overridesMandatory, details: c.details.map(([k, v]) => `${k}: ${v}`).join('\n'),
+    needsReview: (c.needsReview || overridesMandatory) && !(old?.reviewDismissed && !newer),
+    reviewDismissed: !!old?.reviewDismissed && !newer, details: c.details.map(([k, v]) => `${k}: ${v}`).join('\n'),
     notes: old?.notes || '',
     manualCategory: !!old?.manualCategory, manualPriority: !!old?.manualPriority, manualProcessDay: !!old?.manualProcessDay,
     notifiedMessageId: old?.notifiedMessageId ?? null,
@@ -237,6 +242,7 @@ export async function sync({ quiet = false } = {}) {
     if (initial) {
       newHistoryId = (await G.profile()).historyId;
       refs.push(...await listRecent(`newer_than:${s.initialDays}d ${s.queryExtra}`, s.maxInitial, quiet));
+      await saveSettings({ coverageFromDay: E.todayEpochDay() - s.initialDays });
     } else {
       try {
         let page = null;
@@ -257,6 +263,7 @@ export async function sync({ quiet = false } = {}) {
     if (!failed) await saveSettings({ historyId: newHistoryId });
     if (initial) { for (const t of state.threads.values()) t.notifiedMessageId = t.latestMessageId; await db.put('threads', [...state.threads.values()]); }
     else if (added) notifyNew();
+    await backfill(quiet);
     await saveSettings({ lastSyncAt: Date.now(), lastSyncError: null });
     setSync('done', '', quiet);
     await syncState().catch((e) => { state.stateSync.error = e.message; });
@@ -271,6 +278,42 @@ export async function sync({ quiet = false } = {}) {
     syncing = false;
     emit();
   }
+}
+
+/** First day this browser downloaded mail from (its initial window), as an epoch day. */
+function coverageDay(s = state.settings) {
+  if (s.coverageFromDay) return s.coverageFromDay;
+  return (s.connectedAt ? E.epochDayFromMs(s.connectedAt) : E.todayEpochDay()) - s.initialDays;
+}
+
+/**
+ * Makes sure this browser has every mail since the shared "mail from" day agreed with the phone,
+ * so both show the same mail and the same counts. Runs once per new start day; no alerts for old mail.
+ */
+async function backfill(quiet) {
+  const s = state.settings;
+  const target = Math.min(...[s.sharedFromDay, coverageDay(s)].filter((x) => x > 0));
+  if (!isFinite(target) || (s.backfilledFromDay && s.backfilledFromDay <= target)) return;
+  const { y, m, d } = E.ymdOf(target - 1);
+  setSync('running', 'Making sure all mail since ' + E.ymdOf(target).d + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][E.ymdOf(target).m - 1] + ' is here…', quiet);
+  const refs = await listRecent(`after:${y}/${m}/${d} ${s.queryExtra}`, 3000, quiet);
+  const { added, failed } = await fetchAndStore(refs, quiet);
+  const changed = [];
+  for (const t of state.threads.values()) if (t.notifiedMessageId !== t.latestMessageId) { t.notifiedMessageId = t.latestMessageId; changed.push(t); }
+  if (changed.length) await db.put('threads', changed);
+  if (!failed) await saveSettings({ backfilledFromDay: target });
+  if (added) await audit(null, 'BACKFILL', `Downloaded ${added} older mail(s) so phone and website match`);
+}
+
+/** Counts per folder × priority (pending only) — compared with the phone in Settings. */
+export function countStats() {
+  const counts = {};
+  const all = [...state.threads.values()];
+  for (const k of E.FOLDER_KEYS) {
+    const open = all.filter((t) => t.categoryKey === k && E.isPending(t.status));
+    counts[k] = { HIGH: open.filter((t) => t.priority === 'HIGH').length, MEDIUM: open.filter((t) => t.priority === 'MEDIUM').length, LOW: open.filter((t) => t.priority === 'LOW').length };
+  }
+  return { at: Date.now(), total: all.length, pending: all.filter((t) => E.isPending(t.status)).length, counts, from: state.settings.sharedFromDay };
 }
 
 async function listRecent(q, limit, quiet) {
@@ -411,8 +454,8 @@ async function editThread(id, patch) {
 export const setStatus = (id, status) => { audit(id, 'MANUAL_STATUS', E.STATUS[status]?.label || status); return editThread(id, { status }); };
 export const markDone = (id) => { toast('Marked resolved ✓'); audit(id, 'MANUAL_STATUS', 'Resolved'); return editThread(id, { status: 'DONE' }); };
 export async function markReviewed(id) {
-  const t = state.threads.get(id); if (!t) return;
-  t.needsReview = false; await db.put('threads', t); await audit(id, 'REVIEWED', 'Needs Review cleared'); emit();
+  await editThread(id, { needsReview: false, reviewDismissed: true }); // synced with the phone
+  await audit(id, 'REVIEWED', 'Needs Review cleared');
 }
 export const setNotes = (id, notes) => { toast('Notes saved'); return editThread(id, { notes }); };
 export const setProcessDay = (id, day) => editThread(id, { processEpochDay: day, manualProcessDay: true });
@@ -566,7 +609,7 @@ export async function syncState() {
     const local = {};
     for (const t of state.threads.values()) { const e = entryOf(t); if (e) local[t.threadId] = e; }
     const localConfig = state.settings.configUpdatedAt ? configObject() : null;
-    const { merged, toApply, applyConfig, changed } = mergeState(remote, local, localConfig);
+    const { merged, toApply, applyConfig, changed, mailFromDay, stats } = mergeState(remote, local, localConfig, { device: 'web', stats: countStats(), mailFromDay: coverageDay() });
 
     let needReclassify = false;
     const applied = [];
@@ -576,8 +619,9 @@ export async function syncState() {
       Object.assign(t, {
         status: e.status, notes: e.notes || '', remindAt: e.remindAt ?? null, reminderNote: e.reminderNote ?? null,
         manualCategory: e.categoryKey != null, manualPriority: e.priority != null, manualProcessDay: e.processEpochDay != null,
-        userUpdatedAt: e.u,
+        userUpdatedAt: e.u, reviewDismissed: !!e.rv,
       });
+      if (e.rv) t.needsReview = false;
       if (e.categoryKey != null) t.categoryKey = e.categoryKey;
       if (e.priority != null) { t.priority = e.priority; t.critical = !!e.critical; }
       if (e.processEpochDay != null) t.processEpochDay = e.processEpochDay;
@@ -594,7 +638,9 @@ export async function syncState() {
       if (cats.length === E.FOLDER_KEYS.length) state.categories = cats;
       if (applyConfig.people) { try { state.settings.people = JSON.parse(applyConfig.people); } catch {} }
       state.rules = (applyConfig.rules || []).map((r, i) => ({ id: (r.createdAt || 0) + i, ...r }));
-      state.vips = (applyConfig.vips || []).map((v, i) => ({ id: i + 1, ...v }));
+      // Never replace an address entered on this device with an empty one from the other device.
+      const mine = Object.fromEntries(state.vips.map((v) => [v.name.toLowerCase(), v.emails]));
+      state.vips = (applyConfig.vips || []).map((v, i) => ({ id: i + 1, ...v, emails: v.emails || mine[v.name.toLowerCase()] || '' }));
       await db.kvSet('categories', state.categories); await db.kvSet('rules', state.rules); await db.kvSet('vips', state.vips);
       await saveSettings({ people: state.settings.people, highNames: applyConfig.highNames ?? state.settings.highNames, highRecipients: applyConfig.highRecipients ?? state.settings.highRecipients, configUpdatedAt: applyConfig.u });
       needReclassify = true;
@@ -605,6 +651,7 @@ export async function syncState() {
       if (files[0]) await G.driveUpdate(files[0].id, merged); else await G.driveCreate(merged);
       for (const f of files.slice(1)) await G.driveDelete(f.id).catch(() => {});
     }
+    await saveSettings({ sharedFromDay: mailFromDay, peerStats: stats.android || null });
     state.stateSync = { lastAt: Date.now(), error: null };
   } finally {
     stateSyncing = false;

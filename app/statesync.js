@@ -3,7 +3,8 @@
 // hidden app folder. The Android app (sync/StateSync.kt) reads and writes the same format.
 //
 // File: { schema: 1, threads: { <threadId>: Entry }, config: Config | null }
-// Entry:  { u, status, notes, remindAt, reminderNote, categoryKey|null, priority|null, critical, processEpochDay|null }
+// Entry:  { u, status, notes, remindAt, reminderNote, categoryKey|null, priority|null, critical, processEpochDay|null, rv }
+//         rv = you cleared "Needs review". File also has mailFromDay (shared first day) and stats {android, web}.
 //         categoryKey / priority / processEpochDay are set only when chosen by hand.
 // Config: { u, categories: [...], rules: [...], vips: [...], highNames, highRecipients }
 // Merge: per thread, the entry with the newer `u` (edit time, ms) wins; the config is all-or-nothing by `u`.
@@ -23,6 +24,7 @@ export function entryOf(t) {
     priority: t.manualPriority ? t.priority : null,
     critical: !!(t.manualPriority && t.critical),
     processEpochDay: t.manualProcessDay ? t.processEpochDay : null,
+    rv: !!t.reviewDismissed,
   };
 }
 
@@ -33,7 +35,7 @@ export function entryOf(t) {
  * @returns merged file, the remote entries that are newer than this device's (to apply here),
  *          the remote config if newer, and whether the file must be written back.
  */
-export function mergeState(remote, localEntries, localConfig) {
+export function mergeState(remote, localEntries, localConfig, { device = 'web', stats = null, mailFromDay = 0 } = {}) {
   const r = remote && typeof remote === 'object' ? remote : {};
   const rThreads = r.threads || {};
   const threads = { ...rThreads };
@@ -54,5 +56,17 @@ export function mergeState(remote, localEntries, localConfig) {
   if (localConfig && (!config || localConfig.u > config.u)) { config = localConfig; changed = true; }
   else if (config && (!localConfig || config.u > localConfig.u)) applyConfig = config;
 
-  return { merged: { schema: SCHEMA, threads, config }, toApply, applyConfig, changed };
+  // Shared "mail from" day: the earliest day either device downloaded from.
+  const remoteFrom = +(r.mailFromDay || 0);
+  const froms = [remoteFrom, mailFromDay].filter((x) => x > 0);
+  const from = froms.length ? Math.min(...froms) : 0;
+  if (from !== remoteFrom) changed = true;
+
+  // Per-device counts for the Phone ⇄ Website check (only this device's entry is written).
+  const allStats = { ...(r.stats || {}) };
+  if (stats) {
+    const prev = allStats[device];
+    if (!prev || JSON.stringify(prev.counts) !== JSON.stringify(stats.counts) || prev.total !== stats.total) { allStats[device] = stats; changed = true; }
+  }
+  return { merged: { schema: SCHEMA, threads, config, mailFromDay: from, stats: allStats }, toApply, applyConfig, changed, mailFromDay: from, stats: allStats };
 }

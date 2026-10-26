@@ -531,6 +531,8 @@ function SettingsView() {
       : html`<button class="btn primary" onClick=${C.login}>Sign in with Google</button>`}
     <//>
 
+    <${SyncCheck} />
+
     <${Group} title="Mandatory High priority (Mike & April)">
       <p class="small">Rule A — Mike or April mentions any of these names:</p>
       <input class="field" value=${names} onInput=${(e) => setNames(e.target.value)} placeholder="Dev, Devendra, Geo, Vikram" />
@@ -581,6 +583,26 @@ function SettingsView() {
         <button class="btn primary" onClick=${() => { if (pin.length >= 4) { C.setPayrollPin(pin); setPinDialog(false); } }}>Save</button>`}>
       <input class="field pin" type="password" inputmode="numeric" maxlength="8" placeholder="4–8 digits" value=${pin} onInput=${(e) => setPin(e.target.value.replace(/\D/g, ''))} /><//>`}
   </div>`;
+}
+
+/** Phone ⇄ Website check: pending counts per folder and priority on both sides. */
+function SyncCheck() {
+  const peer = state.settings.peerStats;
+  const mine = C.countStats();
+  let allMatch = true;
+  const rows = E.FOLDER_KEYS.map((k) => html`<tr><td>${E.folderName(k)}</td>${PRIOS.map((p) => {
+    const a = mine.counts[k][p], b = peer?.counts?.[k]?.[p] ?? 0;
+    if (a !== b) allMatch = false;
+    return html`<td class=${a === b ? '' : 'err-text'}>${a} / ${b} ${a === b ? '✓' : '✗'}</td>`;
+  })}</tr>`);
+  return html`<${Group} title="Phone ⇄ Website check">
+    ${!peer ? html`<p class="small">The phone has not sent its counts yet. Open the app on the phone (v1.0.8 or newer) and wait a minute.</p>` : html`
+      <table class="sync-table"><thead><tr><th>Pending</th><th>High</th><th>Medium</th><th>Low</th></tr><tr class="sub"><th></th><th colspan="3">website / phone</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <p class="hint">Mail on website: ${mine.total} · on phone: ${peer.total} · phone counted ${shortTime(peer.at)}${state.settings.sharedFromDay ? ` · both keep all mail since ${dayFmt(state.settings.sharedFromDay)}` : ''}</p>
+      <p class=${allMatch ? 'pri-text small' : 'err-text small'}>${allMatch ? '✓ Phone and website match.' : 'Counts differ right now — they catch up after both have synced (a minute or two). Click Sync now here and open the app on the phone.'}</p>`}
+    <button class="btn" onClick=${() => (G.hasToken() ? C.sync() : C.login())}>Sync now</button>
+  <//>`;
 }
 
 function PeopleView() {
