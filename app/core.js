@@ -4,7 +4,7 @@ import * as db from './db.js';
 import * as G from './gmail.js';
 import * as E from './engine.js';
 import { parseMessage, toInput } from './mime.js';
-import { entryOf, mergeState } from './statesync.js';
+import { entryOf, mergeState, missingFrom } from './statesync.js';
 import { DEFAULT_FOLDERS, DEFAULT_PEOPLE, DEFAULT_VIPS, DEFAULT_HIGH_NAMES, DEFAULT_HIGH_RECIPIENTS } from './defaults.gen.js';
 const DEFAULT_CATEGORIES = DEFAULT_FOLDERS;
 
@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS = {
   notifyHigh: true, notifyVip: true, notifyMedium: false, notifyOtpBeep: true,
   highNames: DEFAULT_HIGH_NAMES, highRecipients: DEFAULT_HIGH_RECIPIENTS, configUpdatedAt: 0,
   people: null, folderModel: 0, sendEmptySummaries: false, payrollPinHash: '', lastReview: {},
-  coverageFromDay: 0, sharedFromDay: 0, backfilledFromDay: 0, peerStats: null,
+  coverageFromDay: 0, sharedFromDay: 0, backfilledFromDay: 0, peerStats: null, unfetchable: [],
 };
 
 export const state = {
@@ -81,6 +81,11 @@ export async function init() {
   for (const t of await db.getAll('threads')) state.threads.set(t.threadId, t);
   state.audit = await db.kvGet('audit', []);
   if ((state.settings.folderModel || 0) < 2) await upgradeToFolders();
+  if ((state.settings.folderModel || 0) < 3) {
+    // Re-check everything once so phone and website apply the same status rules.
+    await saveSettings({ folderModel: 3 });
+    if (state.threads.size) await reclassifyAll(true);
+  }
   state.ready = true;
   emit();
   if (state.settings.accountEmail) {
@@ -305,6 +310,40 @@ async function backfill(quiet) {
   if (added) await audit(null, 'BACKFILL', `Downloaded ${added} older mail(s) so phone and website match`);
 }
 
+/**
+ * Downloads every thread the phone has that this browser is missing (or has fewer messages of),
+ * so both hold exactly the same mail. No alerts for these.
+ */
+async function fetchPeerThreads(peer) {
+  const local = Object.fromEntries([...state.threads.values()].map((t) => [t.threadId, t.messageCount]));
+  const skip = new Set(state.settings.unfetchable || []);
+  const todo = missingFrom(peer, local).filter((id) => !skip.has(id)).slice(0, 300);
+  if (!todo.length) return;
+  const self = state.settings.accountEmail;
+  const eng = engine();
+  let added = 0;
+  for (const id of todo) {
+    try {
+      const j = await G.getThread(id);
+      const parsed = (j.messages || []).map((m) => parseMessage(m, self))
+        .filter((m) => !m.labelIds.split(',').some((l) => ['DRAFT', 'SPAM', 'TRASH', 'CHAT'].includes(l)));
+      if (!parsed.length) { skip.add(id); continue; }
+      const have = new Set(await db.existingIds(parsed.map((m) => m.id)));
+      const missing = parsed.filter((m) => !have.has(m.id));
+      if (missing.length) { await db.put('messages', missing); added += missing.length; }
+      await reclassifyThread(id, eng);
+      const t = state.threads.get(id);
+      if (t) { t.notifiedMessageId = t.latestMessageId; await db.put('threads', t); if (t.messageCount < +peer[id]) skip.add(id); }
+    } catch (e) {
+      if (e instanceof G.AuthNeeded) throw e;
+      if (/ 404/.test(e.message || '')) skip.add(id);
+    }
+  }
+  await saveSettings({ unfetchable: [...skip].slice(-2000) });
+  if (added) { await audit(null, 'MATCH', `Downloaded ${added} mail(s) the phone had, so both match`); scheduleStateSync(); }
+  emit();
+}
+
 /** Counts per folder × priority (pending only) — compared with the phone in Settings. */
 export function countStats() {
   const counts = {};
@@ -313,7 +352,9 @@ export function countStats() {
     const open = all.filter((t) => t.categoryKey === k && E.isPending(t.status));
     counts[k] = { HIGH: open.filter((t) => t.priority === 'HIGH').length, MEDIUM: open.filter((t) => t.priority === 'MEDIUM').length, LOW: open.filter((t) => t.priority === 'LOW').length };
   }
-  return { at: Date.now(), total: all.length, pending: all.filter((t) => E.isPending(t.status)).length, counts, from: state.settings.sharedFromDay };
+  const threads = {};
+  for (const t of [...all].sort((a, b) => (a.threadId < b.threadId ? -1 : 1))) threads[t.threadId] = t.messageCount;
+  return { at: Date.now(), total: all.length, pending: all.filter((t) => E.isPending(t.status)).length, counts, from: state.settings.sharedFromDay, threads };
 }
 
 async function listRecent(q, limit, quiet) {
@@ -653,6 +694,7 @@ export async function syncState() {
     }
     await saveSettings({ sharedFromDay: mailFromDay, peerStats: stats.android || null });
     state.stateSync = { lastAt: Date.now(), error: null };
+    await fetchPeerThreads(stats.android?.threads);
   } finally {
     stateSyncing = false;
     emit();

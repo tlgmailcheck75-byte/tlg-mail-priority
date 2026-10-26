@@ -596,9 +596,16 @@ function SyncCheck() {
     return html`<td class=${a === b ? '' : 'err-text'}>${a} / ${b} ${a === b ? '✓' : '✗'}</td>`;
   })}</tr>`);
   return html`<${Group} title="Phone ⇄ Website check">
-    ${!peer ? html`<p class="small">The phone has not sent its counts yet. Open the app on the phone (v1.0.8 or newer) and wait a minute.</p>` : html`
+    ${!peer ? html`<p class="small">The phone has not sent its counts yet. Open the app on the phone (v1.0.9 or newer) and wait a minute.</p>` : html`
       <table class="sync-table"><thead><tr><th>Pending</th><th>High</th><th>Medium</th><th>Low</th></tr><tr class="sub"><th></th><th colspan="3">website / phone</th></tr></thead>
       <tbody>${rows}</tbody></table>
+      ${(() => {
+        if (!peer.threads) return null;
+        const onlyPhone = Object.keys(peer.threads).filter((id) => !(id in mine.threads)).length;
+        const onlyWeb = Object.keys(mine.threads).filter((id) => !(id in peer.threads)).length;
+        const diff = Object.keys(mine.threads).filter((id) => id in peer.threads && +peer.threads[id] !== +mine.threads[id]).length;
+        return onlyPhone + onlyWeb + diff ? html`<p class="err-text small">Different mail: ${onlyWeb} only on website · ${onlyPhone} only on phone · ${diff} with a different number of messages. They are downloaded automatically on the next sync.</p>` : null;
+      })()}
       <p class="hint">Mail on website: ${mine.total} · on phone: ${peer.total} · phone counted ${shortTime(peer.at)}${state.settings.sharedFromDay ? ` · both keep all mail since ${dayFmt(state.settings.sharedFromDay)}` : ''}</p>
       <p class=${allMatch ? 'pri-text small' : 'err-text small'}>${allMatch ? '✓ Phone and website match.' : 'Counts differ right now — they catch up after both have synced (a minute or two). Click Sync now here and open the app on the phone.'}</p>`}
     <button class="btn" onClick=${() => (G.hasToken() ? C.sync() : C.login())}>Sync now</button>

@@ -11,6 +11,20 @@
 
 export const SCHEMA = 1;
 
+/** Same thread ids with the same message counts (key order does not matter). */
+export function sameThreads(a, b) {
+  if (!a || !b) return !a && !b;
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every((k) => k in b && +b[k] === +a[k]);
+}
+
+/** Thread ids the other device has that this one lacks, or where it has more messages. */
+export function missingFrom(peer, local) {
+  if (!peer) return [];
+  return Object.keys(peer).filter((id) => (local[id] ?? -1) < +peer[id]);
+}
+
 /** A thread task → its sync entry (null if the user never touched it). */
 export function entryOf(t) {
   if (!t.userUpdatedAt) return null;
@@ -66,7 +80,7 @@ export function mergeState(remote, localEntries, localConfig, { device = 'web', 
   const allStats = { ...(r.stats || {}) };
   if (stats) {
     const prev = allStats[device];
-    if (!prev || JSON.stringify(prev.counts) !== JSON.stringify(stats.counts) || prev.total !== stats.total) { allStats[device] = stats; changed = true; }
+    if (!prev || JSON.stringify(prev.counts) !== JSON.stringify(stats.counts) || prev.total !== stats.total || !sameThreads(prev.threads, stats.threads)) { allStats[device] = stats; changed = true; }
   }
   return { merged: { schema: SCHEMA, threads, config, mailFromDay: from, stats: allStats }, toApply, applyConfig, changed, mailFromDay: from, stats: allStats };
 }
