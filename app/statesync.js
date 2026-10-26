@@ -11,18 +11,35 @@
 
 export const SCHEMA = 1;
 
-/** Same thread ids with the same message counts (key order does not matter). */
+/** Message count from a thread signature: [messages, folder, priority, status] (older files: just the count). */
+export const countOf = (v) => (Array.isArray(v) ? +v[0] : +v || 0);
+
+/** Same threads with the same signatures (key order does not matter). */
 export function sameThreads(a, b) {
   if (!a || !b) return !a && !b;
   const ka = Object.keys(a);
   if (ka.length !== Object.keys(b).length) return false;
-  return ka.every((k) => k in b && +b[k] === +a[k]);
+  return ka.every((k) => k in b && JSON.stringify(b[k]) === JSON.stringify(a[k]));
 }
 
 /** Thread ids the other device has that this one lacks, or where it has more messages. */
 export function missingFrom(peer, local) {
   if (!peer) return [];
-  return Object.keys(peer).filter((id) => (local[id] ?? -1) < +peer[id]);
+  return Object.keys(peer).filter((id) => (local[id] ?? -1) < countOf(peer[id]));
+}
+
+const PENDING = new Set(['NEW', 'TO_DO', 'IN_PROGRESS', 'WAITING']);
+/** How many mails differ (missing either side, or different messages / folder / priority / pending). -1 = no data. */
+export function differences(peer, localThreads) {
+  if (!peer) return -1;
+  const byId = new Map(localThreads.map((t) => [t.threadId, t]));
+  let n = localThreads.filter((t) => !(t.threadId in peer)).length;
+  for (const [k, v] of Object.entries(peer)) {
+    const t = byId.get(k);
+    if (!t) { n++; continue; }
+    if (Array.isArray(v) && (v[0] !== t.messageCount || v[1] !== t.categoryKey || v[2] !== t.priority || PENDING.has(v[3]) !== PENDING.has(t.status))) n++;
+  }
+  return n;
 }
 
 /** A thread task → its sync entry (null if the user never touched it). */

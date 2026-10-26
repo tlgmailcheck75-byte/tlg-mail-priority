@@ -4,7 +4,8 @@ import * as db from './db.js';
 import * as G from './gmail.js';
 import * as E from './engine.js';
 import { parseMessage, toInput } from './mime.js';
-import { entryOf, mergeState, missingFrom } from './statesync.js';
+import { entryOf, mergeState, missingFrom, countOf, differences } from './statesync.js';
+export { differences };
 import { DEFAULT_FOLDERS, DEFAULT_PEOPLE, DEFAULT_VIPS, DEFAULT_HIGH_NAMES, DEFAULT_HIGH_RECIPIENTS } from './defaults.gen.js';
 const DEFAULT_CATEGORIES = DEFAULT_FOLDERS;
 
@@ -188,8 +189,12 @@ async function reclassifyThread(threadId, eng, newMessage = false) {
   else if (newer && !latest.isFromMe && !E.isPending(old.status) && c.status === 'NEW') status = 'NEW';
   else if (newer && !latest.isFromMe && old.status === 'WAITING') status = 'NEW';
   else status = old.status;
-  const folder = old?.manualCategory ? old.categoryKey : c.categoryKey;
-  const priority = old?.manualPriority ? old.priority : c.priority;
+  // The phone is the reference: for mail you never changed by hand, keep the phone's folder / priority / status
+  // as long as the thread has the same messages as when the phone sent them.
+  const follow = old?.peerAdopt && old.peerAdopt.count === msgs.length ? old.peerAdopt : null;
+  const folder = old?.manualCategory ? old.categoryKey : follow ? follow.folder : c.categoryKey;
+  const priority = old?.manualPriority ? old.priority : follow ? follow.priority : c.priority;
+  if (follow && !old.userUpdatedAt && E.isPending(follow.status) !== E.isPending(status)) status = follow.status;
   // A manual priority below a mandatory High is kept, but flagged so it is not silently missed.
   const overridesMandatory = !!old?.manualPriority && c.mandatoryHigh && old.priority !== 'HIGH';
   const reasons = [...c.reasons, ...(overridesMandatory ? [`You set ${E.PRIORITY_LABEL[old.priority]} by hand, overriding a mandatory High rule`] : [])];
@@ -202,7 +207,8 @@ async function reclassifyThread(threadId, eng, newMessage = false) {
     categoryKey: folder,
     tags: c.tags.join(', '),
     priority,
-    critical: old?.manualPriority ? old.critical : c.critical,
+    critical: old?.manualPriority ? old.critical : c.critical && priority === 'HIGH',
+    peerAdopt: follow,
     vipName: c.vipName, suggestedAction: c.suggestedAction,
     processEpochDay: old?.manualProcessDay ? old.processEpochDay : c.processEpochDay,
     status, summary: c.summary, deadline: c.deadline?.text ?? null, otpCode: c.otpCode, reasons: reasons.join('\n'),
@@ -333,7 +339,7 @@ async function fetchPeerThreads(peer) {
       if (missing.length) { await db.put('messages', missing); added += missing.length; }
       await reclassifyThread(id, eng);
       const t = state.threads.get(id);
-      if (t) { t.notifiedMessageId = t.latestMessageId; await db.put('threads', t); if (t.messageCount < +peer[id]) skip.add(id); }
+      if (t) { t.notifiedMessageId = t.latestMessageId; await db.put('threads', t); if (t.messageCount < countOf(peer[id])) skip.add(id); }
     } catch (e) {
       if (e instanceof G.AuthNeeded) throw e;
       if (/ 404/.test(e.message || '')) skip.add(id);
@@ -342,6 +348,34 @@ async function fetchPeerThreads(peer) {
   await saveSettings({ unfetchable: [...skip].slice(-2000) });
   if (added) { await audit(null, 'MATCH', `Downloaded ${added} mail(s) the phone had, so both match`); scheduleStateSync(); }
   emit();
+}
+
+/**
+ * The phone is the reference for automatic classification. For every mail you never changed by hand
+ * and whose messages match the phone's, take the phone's folder, priority and pending/resolved state,
+ * so both always show the same counts. Your own edits still sync both ways as before.
+ */
+export async function followPhone(peer) {
+  if (!peer) return;
+  const changed = [];
+  for (const [id, v] of Object.entries(peer)) {
+    if (!Array.isArray(v)) continue;
+    const t = state.threads.get(id);
+    if (!t || t.userUpdatedAt || t.manualCategory || t.manualPriority || t.messageCount !== v[0]) continue;
+    const [count, folder, priority, status] = v;
+    const pendingDiff = E.isPending(status) !== E.isPending(t.status);
+    if (t.categoryKey === folder && t.priority === priority && !pendingDiff) continue;
+    t.peerAdopt = { count, folder, priority, status };
+    t.categoryKey = folder; t.priority = priority; t.critical = t.critical && priority === 'HIGH';
+    if (pendingDiff) t.status = status;
+    changed.push(t);
+  }
+  if (changed.length) {
+    await db.put('threads', changed);
+    await audit(null, 'MATCH', `${changed.length} mail(s) set to the phone's folder / priority / status`);
+    scheduleStateSync();
+    emit();
+  }
 }
 
 /** Counts per folder × priority (pending only) — compared with the phone in Settings. */
@@ -353,7 +387,7 @@ export function countStats() {
     counts[k] = { HIGH: open.filter((t) => t.priority === 'HIGH').length, MEDIUM: open.filter((t) => t.priority === 'MEDIUM').length, LOW: open.filter((t) => t.priority === 'LOW').length };
   }
   const threads = {};
-  for (const t of [...all].sort((a, b) => (a.threadId < b.threadId ? -1 : 1))) threads[t.threadId] = t.messageCount;
+  for (const t of [...all].sort((a, b) => (a.threadId < b.threadId ? -1 : 1))) threads[t.threadId] = [t.messageCount, t.categoryKey, t.priority, t.status];
   return { at: Date.now(), total: all.length, pending: all.filter((t) => E.isPending(t.status)).length, counts, from: state.settings.sharedFromDay, threads };
 }
 
@@ -695,6 +729,7 @@ export async function syncState() {
     await saveSettings({ sharedFromDay: mailFromDay, peerStats: stats.android || null });
     state.stateSync = { lastAt: Date.now(), error: null };
     await fetchPeerThreads(stats.android?.threads);
+    await followPhone(stats.android?.threads);
   } finally {
     stateSyncing = false;
     emit();

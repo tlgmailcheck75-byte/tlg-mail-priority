@@ -123,6 +123,15 @@ function Banners() {
   return out;
 }
 
+/** "✓ Same as the phone" or "⟳ N mails differ — matching…" on the dashboard. */
+function PeerSyncLine() {
+  const peer = state.settings.peerStats;
+  if (!peer?.threads) return null;
+  const diff = C.differences(peer.threads, [...state.threads.values()]);
+  if (diff < 0) return null;
+  return html`<div class=${'syncline ' + (diff ? 'err' : 'ok')}>${diff === 0 ? `✓ Same as the phone · checked ${shortTime(state.stateSync.lastAt || Date.now())}` : `⟳ ${diff} mail(s) differ from the phone — matching on the next sync (30 s)`}</div>`;
+}
+
 // ---------------------------------------------------------------- dashboard
 function views() { return C.taskViews(); }
 function actionToday(vs) { const today = state.today; return vs.filter((v) => v.pending && !v.overdue && (v.t.processEpochDay <= today || v.t.priority === 'HIGH')).sort((a, b) => b.rank - a.rank); }
@@ -160,6 +169,7 @@ function Dashboard({ selectedId }) {
       <span class="ficon">📋</span><div class="grow"><b>Today's review: ${reviewToday.map(E.folderName).join(', ')}</b>
       <div class="foot">Pending work, new mail and key amounts for this review</div></div><span class="chev">›</span></div>`}
     <${SyncLine} />
+    <${PeerSyncLine} />
     <${SectionHead} title="Folders" />
     <div class="folder-grid">${E.FOLDER_KEYS.map((k) => html`<${FolderCard} key=${k} k=${k} vs=${vs} />`)}</div>
     <${SectionHead} title="🔴 High priority — all folders" count=${high.length} cls="p-HIGH" />
@@ -601,9 +611,10 @@ function SyncCheck() {
       <tbody>${rows}</tbody></table>
       ${(() => {
         if (!peer.threads) return null;
+        const cnt = (v) => (Array.isArray(v) ? v[0] : +v);
         const onlyPhone = Object.keys(peer.threads).filter((id) => !(id in mine.threads)).length;
         const onlyWeb = Object.keys(mine.threads).filter((id) => !(id in peer.threads)).length;
-        const diff = Object.keys(mine.threads).filter((id) => id in peer.threads && +peer.threads[id] !== +mine.threads[id]).length;
+        const diff = Object.keys(mine.threads).filter((id) => id in peer.threads && cnt(peer.threads[id]) !== cnt(mine.threads[id])).length;
         return onlyPhone + onlyWeb + diff ? html`<p class="err-text small">Different mail: ${onlyWeb} only on website · ${onlyPhone} only on phone · ${diff} with a different number of messages. They are downloaded automatically on the next sync.</p>` : null;
       })()}
       <p class="hint">Mail on website: ${mine.total} · on phone: ${peer.total} · phone counted ${shortTime(peer.at)}${state.settings.sharedFromDay ? ` · both keep all mail since ${dayFmt(state.settings.sharedFromDay)}` : ''}</p>

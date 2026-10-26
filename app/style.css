@@ -234,3 +234,5 @@ label.radio, label.check { display: flex; align-items: center; gap: 8px; font-si
 .sync-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 4px 0; }
 .sync-table th, .sync-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
 .sync-table tr.sub th { font-weight: 400; color: var(--muted); font-size: 11px; }
+
+.syncline.ok { color: var(--primary); }
