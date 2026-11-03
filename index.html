@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TLG Mail Priority</title>
-<meta name="description" content="Personal Android app that prioritises Gmail for TLG accounting work.">
+<meta name="description" content="Private Android app and website that sort Gmail and Outlook by priority for TLG accounting work.">
 <style>
   :root { --bg:#f7f8fc; --fg:#1b1d24; --muted:#55607a; --accent:#1f4e8c; --card:#fff; --line:#e3e6ef; }
   @media (prefers-color-scheme: dark) { :root { --bg:#111318; --fg:#e6e8ef; --muted:#a3abbd; --accent:#a9c7ff; --card:#1a1c22; --line:#2b2f38; } }
@@ -23,23 +23,25 @@
 <body>
 <main>
   <h1>TLG Mail Priority</h1>
-  <p class="sub">A personal Android app and website that help organise Gmail for TLG accounting work.</p>
+  <p class="sub">A private Android app and website that sort Gmail and Outlook by what needs doing first, for TLG accounting work.</p>
 
   <section>
     <h2>What it does</h2>
     <ul>
-      <li>Reads the user's own Gmail with read-only access, after the user signs in with Google.</li>
+      <li>Reads the user's own mailbox, read-only, after they sign in with Google or Microsoft.</li>
       <li>Sorts each email thread into accounting categories (invoices, Bill.com, AR, reconciliation, payroll and others).</li>
       <li>Assigns a High, Medium or Low priority and writes a short summary and a suggested action.</li>
-      <li>Plans the work on a Monday–Saturday schedule and tracks it until the user marks it done.</li>
+      <li>Shows what is overdue, due today and still waiting, until the user marks it done.</li>
+      <li>Keeps the phone and the website in step, so the same work shows up in both.</li>
     </ul>
   </section>
 
   <section>
     <h2>What it never does</h2>
     <ul>
-      <li>It never sends, replies to, forwards, deletes or changes any email.</li>
-      <li>It never sends email content to any server, AI service or third party. All processing happens on your own phone or computer.</li>
+      <li>It never sends, replies to, forwards, deletes or changes any email. Every mail permission it asks for is read-only.</li>
+      <li>It never uploads email content. Mail is read by your own phone or browser and stays there.</li>
+      <li>It carries no analytics, trackers or advertising, and nothing is used to train any AI model.</li>
     </ul>
   </section>
 
@@ -50,10 +52,14 @@
 
   <section>
     <h2>Privacy</h2>
-    <p>Read the <a href="privacy.html">privacy policy</a> for exactly what data is used and how.</p>
+    <p>The <a href="privacy.html">privacy policy</a> sets out exactly what is read, where every piece
+       of it is kept, and how to delete it.</p>
   </section>
 
-  <footer>Private, non-commercial app for personal use. Not affiliated with Google or Bill.com.</footer>
+  <footer>
+    Private, non-commercial app for one accounting team. Not affiliated with Google, Microsoft or Bill.com.<br>
+    Contact: <a href="mailto:tlgmailcheck75@gmail.com">tlgmailcheck75@gmail.com</a>
+  </footer>
 </main>
 </body>
 </html>

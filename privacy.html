@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy Policy — TLG Mail Priority</title>
-<meta name="description" content="How the TLG Mail Priority Android app uses Gmail data.">
+<meta name="description" content="How the TLG Mail Priority Android app and website use Gmail and Outlook data.">
 <style>
   :root { --bg:#f7f8fc; --fg:#1b1d24; --muted:#55607a; --accent:#1f4e8c; --card:#fff; --line:#e3e6ef; }
   @media (prefers-color-scheme: dark) { :root { --bg:#111318; --fg:#e6e8ef; --muted:#a3abbd; --accent:#a9c7ff; --card:#1a1c22; --line:#2b2f38; } }
@@ -16,13 +16,17 @@
   h2 { font-size:1.1rem; margin:28px 0 6px; }
   ul { padding-left:20px; }
   a { color:var(--accent); }
+  table { border-collapse:collapse; width:100%; margin:10px 0; font-size:.95rem; }
+  th, td { text-align:left; padding:7px 10px; border:1px solid var(--line); vertical-align:top; }
+  th { background:var(--card); font-weight:600; }
+  code { font-size:.9em; }
   .box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Privacy Policy</h1>
-  <p class="sub">TLG Mail Priority (Android app and website) · Last updated 22 October 2026</p>
+  <p class="sub">TLG Mail Priority (Android app and website) · Last updated 3 November 2026</p>
 
   <div class="box">
     TLG Mail Priority's use and transfer of information received from Google APIs adheres to the
@@ -31,53 +35,127 @@
   </div>
 
   <h2>1. Who this applies to</h2>
-  <p>TLG Mail Priority is a private, non-commercial Android app and website (<a href="app/">tlgmailcheck75-byte.github.io/tlg-mail-priority/app</a>) for personal work use. It is not sold or advertised.</p>
-
-  <h2>2. Google data the app accesses</h2>
-  <p>With the user's permission, given on Google's own sign-in screen, the app requests one Google permission:</p>
+  <p>TLG Mail Priority is a private, non-commercial tool used inside one small accounting team. It
+     is not sold, not advertised and not offered to the general public. It comes in two forms that
+     share a classification engine but store things differently, so both are described below:</p>
   <ul>
-    <li><code>https://www.googleapis.com/auth/gmail.readonly</code>: read-only access to Gmail messages.</li>
-    <li><code>https://www.googleapis.com/auth/drive.appdata</code>: access only to the app's own hidden folder in the user's Google Drive. The app cannot see any other Drive files.</li>
+    <li>the <strong>Android app</strong>, installed directly on a phone;</li>
+    <li>the <strong>website</strong>, which runs entirely in the user's own browser.</li>
   </ul>
-  <p>The app reads the sender, recipients, subject, date, message text, labels, thread information and attachment
-     file names, types and sizes. It does not download attachment files. It cannot send, change or delete any email.</p>
+
+  <h2>2. What is accessed</h2>
+  <p>Only after the user signs in on the provider's own screen and grants permission:</p>
+  <table>
+    <tr><th>Where</th><th>Permission</th><th>What it allows</th></tr>
+    <tr>
+      <td>Android app — Google</td>
+      <td><code>gmail.readonly</code></td>
+      <td>Read Gmail messages. Nothing else.</td>
+    </tr>
+    <tr>
+      <td>Android app — Microsoft</td>
+      <td><code>Mail.Read</code>, <code>offline_access</code>, <code>User.Read</code></td>
+      <td>Read Outlook messages, stay signed in, and read the signed-in address.</td>
+    </tr>
+    <tr>
+      <td>Website — Google</td>
+      <td><code>gmail.readonly</code></td>
+      <td>Read Gmail messages. Nothing else.</td>
+    </tr>
+    <tr>
+      <td>Website — Google</td>
+      <td><code>drive.appdata</code></td>
+      <td>Read and write <em>only</em> the app's own hidden folder in the user's Google Drive, used
+          to keep the phone and the website in step. It gives no access to any other Drive file,
+          and the app cannot see the rest of the user's Drive.</td>
+    </tr>
+  </table>
+  <p>From each message, the sender, recipients, subject, date, message text, labels or folder,
+     thread information, and the file names, types and sizes of attachments are read.
+     <strong>Attachment files themselves are never downloaded.</strong> Every mail permission above
+     is read-only: nothing can be sent, replied to, forwarded, deleted, labelled or changed in the
+     mailbox.</p>
+  <p>Beyond its own hidden folder, no access to Drive, Contacts or Calendar is requested.</p>
 
   <h2>3. How the data is used</h2>
   <ul>
-    <li>To sort emails into accounting categories, set a priority, write a short summary and suggest an action.</li>
-    <li>To plan work on the user's weekly schedule and track whether it is done.</li>
-    <li>To show notifications for important new emails.</li>
+    <li>To sort each thread into an accounting category, set a High, Medium or Low priority, write a
+        short summary and suggest an action.</li>
+    <li>To show what is overdue, due today or still waiting, until the user marks it done.</li>
   </ul>
-  <p>All of this processing happens <strong>only on the user's own device</strong> (the phone, or the browser on the user's computer). The data is not used for advertising,
-     is not sold, and is not used to train any AI or machine-learning model.</p>
+  <p>All of this is worked out <strong>on the user's own device</strong> — the phone, or the browser
+     on their computer. Mail is not used for advertising, is not sold, and is not used to train any
+     AI or machine-learning model.</p>
 
-  <h2>4. Where the data is stored</h2>
-  <p>Downloaded email data and classifications are stored in the app's private storage on the phone (excluded from Android cloud backup)
-     and, on the website, in the browser's local storage (IndexedDB) on the user's computer.</p>
-  <p>To keep the phone and the website in step, a small file with the user's own work state — task status (e.g. Done), notes, reminders,
-     manual category/priority choices, categories, rules and VIP addresses — is saved in the hidden app folder of the user's <strong>own</strong>
-     Google Drive. Email text is not stored there. Nobody else, including the developer, can read this folder.</p>
-  <p>There is no server. Email data is never transmitted to the developer, to any AI service or to any other third party.</p>
+  <h2>4. Where the data is kept</h2>
+  <p>This is the part worth being exact about, so it is set out in full.</p>
+  <table>
+    <tr><th>Data</th><th>Android app</th><th>Website</th></tr>
+    <tr>
+      <td>Message content — subjects, bodies, senders, attachment names — and what is worked out
+          from it</td>
+      <td>The phone's memory only, while the app is open. It is not written to a file and not
+          uploaded. Closing the app discards it.</td>
+      <td>The browser's own storage (IndexedDB) on that computer. It is not uploaded anywhere.</td>
+    </tr>
+    <tr>
+      <td>Sign-in tokens</td>
+      <td>The app's private storage on the phone. They go nowhere but back to Google or Microsoft.</td>
+      <td>Held by the browser for the session, through Google's own sign-in library.</td>
+    </tr>
+    <tr>
+      <td>The user's own work state — what is marked Done or Waiting, their notes and reminders, and
+          any category or priority they set by hand</td>
+      <td>The app's private storage on the phone, stored against the provider's thread identifier
+          alone — no subject, sender or message text.</td>
+      <td>A single JSON file in the hidden app folder of the user's <strong>own</strong> Google
+          Drive, so the phone and the website agree. It holds thread identifiers and the user's own
+          entries. <strong>No message text is written to it.</strong> Nobody else, including the
+          developer, can read that folder.</td>
+    </tr>
+    <tr>
+      <td>Account (email address, name, whether the user is an admin) and the categories, keywords,
+          rules and VIP addresses the team has set up</td>
+      <td>A database hosted by <a href="https://supabase.com/privacy">Supabase</a>, so settings
+          follow a person between devices and an admin can set them for the team.
+          <strong>No message content is ever stored there.</strong></td>
+      <td>In the same Google Drive hidden app folder as the work state above.</td>
+    </tr>
+  </table>
+  <p>In short: the Android app does use a server, and it holds the user's account and the team's
+     category settings — but never a line of anyone's mail. Mail is fetched by the device, straight
+     from Google or Microsoft, and stays on that device.</p>
 
   <h2>5. Sharing</h2>
-  <p>The app does not share Google user data with anyone. The only network connections it makes for email are to
-     Google's own Gmail API and sign-in services. It also checks a version file to offer app updates, which sends no user data.</p>
+  <p>Google and Microsoft user data is not shared with anyone. The only network connections made are
+     to Google's and Microsoft's own sign-in, mail and Drive services, and — from the Android app —
+     to the Supabase database described above. There are no analytics, trackers or advertising
+     services in either the app or the website.</p>
 
   <h2>6. Deleting your data</h2>
   <ul>
-    <li>In the app, open <em>Settings → Disconnect</em> (website: <em>Settings → Sign out &amp; remove data</em>). This revokes access at Google and deletes
-        downloaded email data from that device.</li>
-    <li>The synced work-state file can be deleted at any time in Google Drive → Settings → Manage apps → TLG Mail Priority →
-        Options → <em>Delete hidden app data</em>.</li>
-    <li>Uninstalling the app deletes all of its data.</li>
-    <li>You can also remove access at any time at
-        <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+    <li>In the Android app, open <em>You → Mailboxes → Disconnect</em>. The sign-in tokens for that
+        mailbox are deleted from the phone. Uninstalling removes everything it holds.</li>
+    <li>On the website, clearing the site's data in the browser removes the stored mail.</li>
+    <li>The synced work-state file can be deleted at any time in Google Drive → Settings →
+        Manage apps → TLG Mail Priority → Options → <em>Delete hidden app data</em>.</li>
+    <li>Revoke access at any time at
+        <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a> (Google)
+        or <a href="https://myapplications.microsoft.com">myapplications.microsoft.com</a> (Microsoft).</li>
+    <li>To have the account and settings removed from the database, write to the address below and
+        they will be deleted.</li>
   </ul>
 
   <h2>7. Security</h2>
-  <p>Sign-in uses Google OAuth 2.0 through Google Play services. The user's Google password is never entered in or seen by the app.</p>
+  <p>Sign-in uses OAuth 2.0; the Android app uses PKCE in the system browser. The user's password is
+     never entered into, seen by, or stored by the app or the website. The database enforces row
+     level security, so each person can read only their own account and the settings shared with
+     their team.</p>
 
-  <h2>8. Contact</h2>
+  <h2>8. Changes</h2>
+  <p>If what is done with data changes, this page is updated and the date at the top changes with it.</p>
+
+  <h2>9. Contact</h2>
   <p>Questions about this policy: <a href="mailto:tlgmailcheck75@gmail.com">tlgmailcheck75@gmail.com</a></p>
 
   <p><a href="index.html">← Back to home</a></p>
